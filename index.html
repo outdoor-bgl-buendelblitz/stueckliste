@@ -1,0 +1,288 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+<title>Bündelblitz Stückliste 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: Werkstattblatt – links das drehbare Modell, rechts die Stückliste; auf dem Handy untereinander */
+:root{
+  --bg:#F6F7F4; --panel:#FFFFFF; --ink:#2E2C2A; --text:#4A4946; --mut:#77746E; --line:#E1E2DD;
+  --green:#3CAA1B; --green-deep:#2B7D12; --tint:#ECF6E8; --hover:#F1F4EE; --anthra:#57544F; --view:#FFFFFF;
+  --f-display:'Exo 2', 'Segoe UI', system-ui, sans-serif; --f-body:'Exo 2', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1B1C1A; --panel:#242523; --ink:#F1F0EC; --text:#D6D4CF; --mut:#A09D96; --line:#3A3B38;
+  --green:#4CC22A; --green-deep:#7AD95A; --tint:#22351C; --hover:#2C2E2A; --anthra:#BDB9B2; --view:#2A2B29; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#1B1C1A; --panel:#242523; --ink:#F1F0EC; --text:#D6D4CF; --mut:#A09D96; --line:#3A3B38;
+  --green:#4CC22A; --green-deep:#7AD95A; --tint:#22351C; --hover:#2C2E2A; --anthra:#BDB9B2; --view:#2A2B29; color-scheme:dark }
+html,body{ height:100%; }
+body{ background:var(--bg); color:var(--text); font-family:var(--f-body); font-size:15px; line-height:1.45; }
+.wrap{ max-width:1440px; margin:0 auto; padding-block:16px 28px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); display:flex; flex-direction:column; gap:14px; }
+header{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; border-bottom:3px solid var(--green); padding-bottom:10px; }
+header .k{ font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--green-deep); }
+header h1{ margin:2px 0 0; font-family:var(--f-display); font-weight:800; font-size:clamp(24px,3.4vw,34px); line-height:1.05; color:var(--ink); text-wrap:balance; }
+header .meta{ font-size:13px; color:var(--mut); text-align:right; }
+.grid{ display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:14px; align-items:start; }
+@media (max-width:900px){ .grid{ grid-template-columns:minmax(0,1fr); } }
+.viewer{ position:relative; background:var(--view); border:1px solid var(--line); border-radius:10px; overflow:hidden; height:min(72vh, 720px); min-height:340px; }
+@media (max-width:900px){ .viewer{ height:58vh; } .hint{ display:none; } .tools{ position:static; padding:10px 12px 12px; border-top:1px solid var(--line); } .chip{ box-shadow:none; } header .meta{ text-align:left; } .chip input[type=range]{ width:90px; } }
+.viewer{ display:flex; flex-direction:column; }
+#cv{ display:block; width:100%; flex:1 1 auto; min-height:0; touch-action:none; cursor:grab; }
+#cv.pick{ cursor:pointer; }
+.tip{ position:absolute; pointer-events:none; background:var(--ink); color:var(--bg); font-size:13px; font-weight:600; padding:5px 9px; border-radius:6px; white-space:nowrap; transform:translate(12px, -130%); }
+.tools{ position:absolute; left:12px; right:12px; bottom:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.chip{ display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:13px; color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.chip input[type=range]{ width:120px; accent-color:var(--green); }
+button.chip{ cursor:pointer; font:inherit; font-size:13px; }
+button.chip:hover{ border-color:var(--green); }
+button.chip[aria-pressed="false"]{ color:var(--mut); text-decoration:line-through; }
+:focus-visible{ outline:2px solid var(--green); outline-offset:2px; }
+.hint{ position:absolute; top:10px; left:12px; font-size:12px; color:var(--mut); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:3px 8px; }
+.list{ background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; max-height:min(72vh, 720px); }
+@media (max-width:900px){ .list{ max-height:none; } }
+.sel{ padding:12px 14px; border-bottom:1px solid var(--line); min-height:62px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
+.sel .t{ font-weight:700; color:var(--ink); }
+.sel .s{ font-size:13px; color:var(--mut); }
+.sel a{ color:var(--green-deep); font-weight:600; }
+.scroll{ overflow:auto; }
+table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+th{ position:sticky; top:0; z-index:1; background:var(--anthra); color:var(--panel); text-align:left; font-weight:600; font-size:13px; padding:7px 10px; }
+td{ padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+tr.grp td{ background:var(--bg); color:var(--green-deep); font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding-top:10px; }
+tbody tr.row{ cursor:pointer; }
+tbody tr.row:hover td{ background:var(--hover); }
+tbody tr.row.on td{ background:var(--tint); }
+tbody tr.row.on td:first-child{ box-shadow:inset 4px 0 0 var(--green); }
+td.p{ width:44px; font-weight:700; color:var(--green-deep); }
+td.q{ width:52px; text-align:right; }
+td small{ display:block; color:var(--mut); font-size:12px; }
+.foot{ font-size:12px; color:var(--mut); }
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+</head><body>
+
+<div class="wrap">
+  <header>
+    <div><div class="k">Bündelblitz · interaktive Stückliste</div><h1>Grundgerät, Anschlagrückwand und Bandabroller</h1></div>
+    <div class="meta">Erwin Rehrl, Herbert März, Alexander Frey GbR<br>Konstruktionsstand 11/2026 · Entwurf</div>
+  </header>
+
+  <div class="grid">
+    <div class="viewer" id="viewer">
+      <canvas id="cv" aria-label="3D-Modell des Bündelblitz"></canvas>
+      <div class="hint" id="hint">Modell wird geladen …</div>
+      <div class="tip" id="tip" hidden></div>
+      <div class="tools">
+        <label class="chip" for="ex">Explosion <input id="ex" type="range" min="0" max="100" value="0"></label>
+        <button class="chip" id="t-rw" aria-pressed="true">Anschlagrückwand</button>
+        <button class="chip" id="t-ba" aria-pressed="true">Bandabroller</button>
+        <button class="chip" id="reset">Ansicht zurücksetzen</button>
+      </div>
+    </div>
+
+    <div class="list">
+      <div class="sel" id="sel"><div class="t">Bauteil anklicken – im Modell oder in der Liste</div><div class="s">Ziehen dreht das Modell, Mausrad oder zwei Finger zoomen.</div></div>
+      <div class="scroll" id="scroll">
+        <table><thead><tr><th>Pos.</th><th>Bezeichnung</th><th style="text-align:right">Stück</th></tr></thead><tbody id="tb"></tbody></table>
+      </div>
+    </div>
+  </div>
+  <p class="foot">Darstellung aus den CAD-Daten (SOLIDWORKS Composer), vereinfacht. Ersatzteile: Positionsnummer angeben, per E-Mail an <b>service@buendelblitz.de</b> oder im Shop unter www.outdoor-bgl.com.</p>
+</div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const BOM = [
+  {grp:'Grundgerät'},
+  {pos:'1', name:'Seitenwange', qty:2},
+  {pos:'2', name:'Mutter M8', qty:8},
+  {pos:'3', name:'Sicherheitshandgriff', qty:2},
+  {pos:'4', name:'Griffrohr', qty:2},
+  {pos:'5', name:'Bügelschraube M8', qty:4},
+  {pos:'6', name:'Gewindestange M10', qty:4},
+  {pos:'7', name:'Wangenrohr', qty:4},
+  {pos:'8', name:'Achse mit Vierkant-Achsrohr', note:'Anschlag: eingeschraubte Zylinderschrauben M12', qty:1},
+  {pos:'9', name:'Rad (Luftrad mit Stahlfelge)', note:'410 × 170 mm, 16x6.50-8', qty:2, link:'https://outdoor-bgl.com/p/luftrad-410x170-mm-16x6-50-8-mit-stahlfelge'},
+  {pos:'10', name:'Klappsplint Ø 5 mm', note:'davon 1 Ersatz (nicht im Modell)', qty:3},
+  {pos:'11', name:'Hutmutter M10', qty:8},
+  {pos:'12', name:'Zentrierstopfen', qty:8},
+  {grp:'Anschlagrückwand (Zubehör)', key:'rw'},
+  {pos:'13', name:'Sterngriff', qty:3},
+  {pos:'14', name:'Abstandhalter', qty:3},
+  {pos:'15', name:'Anschlagplatte', qty:1},
+  {pos:'16', name:'Linsenkopfschraube M8', qty:3},
+  {grp:'Bandabroller (Zubehör)', key:'ba'},
+  {pos:'B1', name:'Stellring mit Klemmschraube M6', qty:2},
+  {pos:'B2', name:'Querrohr', qty:1},
+  {pos:'B3', name:'Kreuzverbinder mit Gewindestift M10', qty:2},
+  {pos:'B4', name:'Werkzeugbox-Halter mit Gewindestift M10', note:'mit je 2 Sechskantschrauben M10 × 25 an der Box', qty:2},
+  {pos:'B5', name:'Werkzeugbox', qty:1},
+];
+const ACC = {rw:['13','14','15','16'], ba:['B1','B2','B3','B4','B5']};
+const byPos = {}; BOM.forEach(b=>{ if(b.pos) byPos[b.pos]=b; });
+
+// ---------- Tabelle ----------
+const tb = document.getElementById('tb'); const rows = {};
+for(const b of BOM){
+  const tr = document.createElement('tr');
+  if(b.grp){ tr.className='grp'; tr.innerHTML=`<td colspan="3">${b.grp}</td>`; if(b.key) tr.dataset.acc=b.key; tb.appendChild(tr); continue; }
+  tr.className='row'; tr.tabIndex=0; tr.dataset.pos=b.pos;
+  tr.innerHTML=`<td class="p">${b.pos}</td><td>${b.name}${b.note?`<small>${b.note}</small>`:''}</td><td class="q">${b.qty}</td>`;
+  tr.addEventListener('click',()=>select(b.pos,true));
+  tr.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); select(b.pos,true);} });
+  tr.addEventListener('mouseenter',()=>hoverPos(b.pos)); tr.addEventListener('mouseleave',()=>hoverPos(null));
+  if(ACC.rw.includes(b.pos)) tr.dataset.acc='rw'; if(ACC.ba.includes(b.pos)) tr.dataset.acc='ba';
+  rows[b.pos]=tr; tb.appendChild(tr);
+}
+
+// ---------- 3D ----------
+const cv = document.getElementById('cv'), viewer = document.getElementById('viewer');
+const renderer = new THREE.WebGLRenderer({canvas:cv, antialias:true});
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 1, 10, 60000);
+const controls = new OrbitControls(camera, cv); controls.enableDamping = true; controls.dampingFactor = .12;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a9096, 1.7));
+const key = new THREE.DirectionalLight(0xffffff, 1.2); scene.add(key); const fill = new THREE.DirectionalLight(0xffffff, .45); scene.add(fill);
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){ renderer.setClearColor(new THREE.Color(cssVar('--view')||'#ffffff'), 1); }
+applyTheme(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+const GREEN = new THREE.Color('#3CAA1B');
+let current = null, hovered = null;
+const b64 = (s,T)=>{ const bin=atob(s); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new T(u.buffer); };
+const parts = []; const center = new THREE.Vector3(); let radius = 1000;
+
+const data = await (await fetch('modell.json')).json();
+const geoCache = {};
+for(const [id,g] of Object.entries(data.geoms)){
+  const bg = new THREE.BufferGeometry();
+  bg.setAttribute('position', new THREE.BufferAttribute(b64(g.p, Float32Array), 3));
+  bg.setIndex(new THREE.BufferAttribute(g.w===2? b64(g.i, Uint16Array): b64(g.i, Uint32Array), 1));
+  bg.computeVertexNormals(); bg.computeBoundingSphere();
+  geoCache[id] = {bg, eg: new THREE.EdgesGeometry(bg, 30)};
+}
+const box = new THREE.Box3();
+for(const p of data.parts){
+  const {bg, eg} = geoCache[p.g];
+  const base = new THREE.Color(...p.col);
+  const mat = new THREE.MeshLambertMaterial({color:base.clone(), side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1, transparent:true, opacity:1});
+  const mesh = new THREE.Mesh(bg, mat);
+  const lmat = new THREE.LineBasicMaterial({color: p.e? new THREE.Color(...p.e): new THREE.Color(0x2a2d30), transparent:true, opacity:1});
+  const lines = new THREE.LineSegments(eg, lmat);
+  const grp = new THREE.Group(); grp.add(mesh); grp.add(lines);
+  const M = new THREE.Matrix4().fromArray(p.m); grp.matrixAutoUpdate=false; grp.matrix.copy(M);
+  scene.add(grp);
+  const rec = {pos:p.pos, grp, mesh, lines, mat, lmat, base, M, c:new THREE.Vector3(...p.c), baseEdge:lmat.color.clone()};
+  mesh.userData.rec = rec; parts.push(rec);
+  grp.updateMatrixWorld(true); box.expandByObject(mesh);
+}
+box.getCenter(center); radius = box.getSize(new THREE.Vector3()).length()/2;
+document.getElementById('hint').textContent = 'Ziehen: drehen · Rechts/zwei Finger: verschieben · Rad: zoomen';
+
+// Explosion: Richtung je Bauteil vom Gerätemittelpunkt weg
+for(const r of parts){ const d = r.c.clone().sub(center); d.y *= .6; r.dir = d.lengthSq()>1? d.normalize(): new THREE.Vector3(0,1,0); r.dist = r.c.distanceTo(center); }
+function explode(f){
+  for(const r of parts){ const off = r.dir.clone().multiplyScalar(f * (180 + r.dist*0.55)); const T = new THREE.Matrix4().makeTranslation(off.x,off.y,off.z); r.grp.matrix.copy(T.multiply(r.M)); r.grp.matrixWorldNeedsUpdate=true; }
+}
+document.getElementById('ex').addEventListener('input', e=>explode(e.target.value/100));
+
+// Kamera
+const homeDir = new THREE.Vector3(0.62, 0.42, 0.66).normalize();
+function frame(target, rad, dir=homeDir){
+  const vf = THREE.MathUtils.degToRad(camera.fov/2), hf = Math.atan(Math.tan(vf)*camera.aspect);
+  const dist = rad / Math.sin(Math.min(vf, hf)) * 1.05;
+  controls.target.copy(target); camera.position.copy(target).addScaledVector(dir, dist); camera.up.set(0,1,0); controls.update();
+}
+let touched = false; cv.addEventListener('pointerdown', ()=>{ touched = true; }, {capture:true}); cv.addEventListener('wheel', ()=>{ touched = true; }, {passive:true});
+function resize(){ const w=viewer.clientWidth, h=viewer.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); if(!touched && !current) frame(center, radius*0.85); }
+new ResizeObserver(resize).observe(viewer); resize();
+document.getElementById('reset').addEventListener('click',()=>{ document.getElementById('ex').value=0; explode(0); select(null); frame(center, radius*0.85); });
+
+// Zubehör ein/aus
+const shown = {rw:true, ba:true};
+function toggleAcc(k, btn){ shown[k]=!shown[k]; btn.setAttribute('aria-pressed', String(shown[k]));
+  for(const r of parts) if(ACC[k].includes(r.pos)) r.grp.visible = shown[k];
+  tb.querySelectorAll(`[data-acc="${k}"]`).forEach(tr=>tr.hidden=!shown[k]);
+  if(current && ACC[k].includes(current) && !shown[k]) select(null); }
+document.getElementById('t-rw').addEventListener('click', e=>toggleAcc('rw', e.currentTarget));
+document.getElementById('t-ba').addEventListener('click', e=>toggleAcc('ba', e.currentTarget));
+
+// Auswahl / Hervorhebung
+function paint(){
+  for(const r of parts){
+    const on = current && r.pos===current, hv = !current && hovered && r.pos===hovered, dim = current && !on;
+    r.mat.color.copy(r.base); if(on) r.mat.color.lerp(GREEN, .55); else if(hv || (current && hovered===r.pos && !on)) r.mat.color.lerp(GREEN, .25);
+    r.mat.opacity = dim ? .14 : 1; r.mat.depthWrite = !dim; r.lmat.opacity = dim ? .12 : 1;
+    r.lmat.color.copy(on ? new THREE.Color('#1f6a0c') : r.baseEdge);
+    r.mesh.renderOrder = dim ? 2 : 0; r.lines.renderOrder = dim ? 3 : 1;
+  }
+}
+const sel = document.getElementById('sel');
+function select(pos, fromTable=false){
+  current = (pos && pos===current && !fromTable) ? null : pos;
+  Object.values(rows).forEach(tr=>tr.classList.toggle('on', tr.dataset.pos===current));
+  if(current){
+    const b = byPos[current]; const n = parts.filter(r=>r.pos===current && r.grp.visible).length;
+    sel.innerHTML = `<div class="t">Pos. ${b.pos} · ${b.name}</div><div class="s">${b.qty} Stück${b.note?' · '+b.note:''}${b.link?` · <a href="${b.link}" target="_blank" rel="noopener">Im Shop ansehen</a>`:' · Ersatzteil: service@buendelblitz.de, Pos. '+b.pos+' angeben'}</div>`;
+    if(!fromTable) rows[current].scrollIntoView({block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    if(fromTable){ // auf die Teile zoomen
+      const bb = new THREE.Box3(); parts.filter(r=>r.pos===current && r.grp.visible).forEach(r=>{ r.grp.updateMatrixWorld(true); bb.expandByObject(r.mesh); });
+      if(!bb.isEmpty()){ const c=bb.getCenter(new THREE.Vector3()); const rad=Math.max(bb.getSize(new THREE.Vector3()).length()/2, 120);
+        const dir = camera.position.clone().sub(controls.target).normalize(); flyTo(c, Math.min(rad*1.6, radius*0.85), dir); }
+    }
+  } else {
+    sel.innerHTML = '<div class="t">Bauteil anklicken – im Modell oder in der Liste</div><div class="s">Ziehen dreht das Modell, Mausrad oder zwei Finger zoomen.</div>';
+  }
+  paint();
+}
+function hoverPos(pos){ hovered = pos; paint(); }
+
+// sanfte Kamerafahrt
+let fly = null;
+function flyTo(target, rad, dir){
+  const vf = THREE.MathUtils.degToRad(camera.fov/2), hf = Math.atan(Math.tan(vf)*camera.aspect);
+  const dist = rad / Math.sin(Math.min(vf, hf));
+  fly = {t0:performance.now(), d: matchMedia('(prefers-reduced-motion: reduce)').matches? 1: 650,
+         a:{p:camera.position.clone(), t:controls.target.clone()}, b:{p:target.clone().addScaledVector(dir, dist), t:target.clone()}};
+}
+
+// Picking
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tip = document.getElementById('tip');
+let down = null;
+function pickAt(e){
+  const r = cv.getBoundingClientRect(); ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc, camera);
+  const hits = ray.intersectObjects(parts.filter(p=>p.grp.visible && (!current || p.pos===current || true)).map(p=>p.mesh), false);
+  // abgeblendete Teile nur treffen, wenn kein sichtbares Teil davor liegt
+  const h = hits.find(x=> !current || x.object.userData.rec.pos===current || x.object.material.opacity>0.5) || hits[0];
+  return h ? h.object.userData.rec : null;
+}
+cv.addEventListener('pointerdown', e=>{ down = {x:e.clientX, y:e.clientY}; });
+cv.addEventListener('pointerup', e=>{ if(!down) return; const moved = Math.hypot(e.clientX-down.x, e.clientY-down.y) > 5; down=null; if(moved) return;
+  const r = pickAt(e); select(r ? r.pos : null); });
+cv.addEventListener('pointermove', e=>{
+  if(e.buttons) { tip.hidden=true; return; }
+  const r = pickAt(e); cv.classList.toggle('pick', !!r);
+  if(r){ const b=byPos[r.pos]; tip.textContent=`Pos. ${b.pos} · ${b.name}`; const rc=viewer.getBoundingClientRect(); tip.style.left=(e.clientX-rc.left)+'px'; tip.style.top=(e.clientY-rc.top)+'px'; tip.hidden=false; }
+  else tip.hidden=true;
+  if((r?r.pos:null)!==hovered){ hovered = r?r.pos:null; Object.values(rows).forEach(tr=>tr.style.outline=''); paint(); }
+});
+cv.addEventListener('pointerleave', ()=>{ tip.hidden=true; hovered=null; paint(); });
+
+function loop(now){
+  if(fly){ let f=Math.min(1,(now-fly.t0)/fly.d); f=f*f*(3-2*f);
+    camera.position.lerpVectors(fly.a.p, fly.b.p, f); controls.target.lerpVectors(fly.a.t, fly.b.t, f); if(f>=1) fly=null; }
+  controls.update();
+  const dir = camera.position.clone().sub(controls.target).normalize(); const right = new THREE.Vector3().crossVectors(camera.up, dir).normalize();
+  key.position.copy(dir).addScaledVector(camera.up,.6).addScaledVector(right,-.5).multiplyScalar(10000); fill.position.copy(dir).addScaledVector(right,.8).multiplyScalar(10000);
+  renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body></html>
