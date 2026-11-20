@@ -230,7 +230,7 @@ function select(pos, fromTable=false){
   if(current){
     const b = byPos[current]; const n = parts.filter(r=>r.pos===current && r.grp.visible).length;
     sel.innerHTML = `<div class="t">Pos. ${b.pos} · ${b.name}</div><div class="s">${b.qty} Stück${b.note?' · '+b.note:''}${b.link?` · <a href="${b.link}" target="_blank" rel="noopener">Im Shop ansehen</a>`:' · Ersatzteil: service@buendelblitz.de, Pos. '+b.pos+' angeben'}</div>`;
-    if(!fromTable) rows[current].scrollIntoView({block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    if(!fromTable){ const sc=document.getElementById('scroll'), tr=rows[current]; const top=tr.offsetTop-sc.querySelector('thead').offsetHeight, bot=tr.offsetTop+tr.offsetHeight; if(sc.scrollHeight>sc.clientHeight+2){ if(top<sc.scrollTop) sc.scrollTop=top; else if(bot>sc.scrollTop+sc.clientHeight) sc.scrollTop=bot-sc.clientHeight; } }
     if(fromTable){ // auf die Teile zoomen
       const bb = new THREE.Box3(); parts.filter(r=>r.pos===current && r.grp.visible).forEach(r=>{ r.grp.updateMatrixWorld(true); bb.expandByObject(r.mesh); });
       if(!bb.isEmpty()){ const c=bb.getCenter(new THREE.Vector3()); const rad=Math.max(bb.getSize(new THREE.Vector3()).length()/2, 120);
