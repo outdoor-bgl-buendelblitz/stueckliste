@@ -4,10 +4,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap">
 <style>
-/* Layout: an outdoor-bgl.com angepasst – Exo 2 Regular, Grau #525252, Grün #3CAA1B, flach, eckig, weißer Grund */
+/* Layout: an outdoor-bgl.com angepasst – Exo 2 Regular, Grau #525252, Grün #2B7F10, flach, eckig, weißer Grund */
 :root{
   --bg:#FFFFFF; --panel:#FFFFFF; --ink:#525252; --text:#525252; --mut:#8A8A8A; --line:#E3E3E3;
-  --green:#3CAA1B; --green-band:#5DB43F; --green-deep:#2E8A12; --tint:#EEF7EA; --hover:#F6F6F6; --anthra:#57544F; --view:#FFFFFF;
+  --green:#2B7F10; --green-band:#5DB43F; --green-deep:#22660C; --tint:#EEF7EA; --hover:#F6F6F6; --anthra:#57544F; --view:#FFFFFF;
   --f-display:'Exo 2', 'Segoe UI', system-ui, sans-serif; --f-body:'Exo 2', 'Segoe UI', system-ui, sans-serif;
   color-scheme:light;
 }
@@ -87,7 +87,7 @@ td small{ display:block; color:var(--mut); font-size:13px; line-height:1.4; }
   <p class="foot">Darstellung aus den CAD-Daten (SOLIDWORKS Composer), vereinfacht. Ersatzteile: Positionsnummer angeben, per E-Mail an <b>service@buendelblitz.de</b> oder im Shop unter www.outdoor-bgl.com.</p>
 </div>
 
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -149,17 +149,40 @@ function applyTheme(){ renderer.setClearColor(new THREE.Color(cssVar('--view')||
 applyTheme(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
-const GREEN = new THREE.Color('#3CAA1B');
+const GREEN = new THREE.Color('#2B7F10');
 let current = null, hovered = null;
 const b64 = (s,T)=>{ const bin=atob(s); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new T(u.buffer); };
 const parts = []; const center = new THREE.Vector3(); let radius = 1000;
 
-const data = await (await fetch('modell.json')).json();
+// Kompaktes Modell: 16-Bit quantisiert, delta-codiert, byte-planar, gzip (Fallback: modell.json)
+async function loadModel(){
+  if('DecompressionStream' in window){
+    try{
+      const [meta, raw] = await Promise.all([
+        fetch('modell2.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }),
+        fetch('modell.bin.gz').then(r=>{ if(!r.ok) throw 0; return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer(); })
+      ]);
+      const B = new Uint8Array(raw);
+      const unplanar = (o,n)=>{ const out=new Uint16Array(n); let acc=0; for(let i=0;i<n;i++){ acc=(acc+(B[o+i]|(B[o+n+i]<<8)))&0xFFFF; out[i]=acc; } return out; };
+      const geoms = {};
+      for(const [id,g] of Object.entries(meta.geoms)){
+        const pos = new Float32Array(g.n*3); let o=g.o;
+        for(let k=0;k<3;k++){ const q=unplanar(o,g.n); o+=2*g.n; const s=g.ex[k]/65535, m=g.mn[k]; for(let i=0;i<g.n;i++) pos[i*3+k]=q[i]*s+m; }
+        geoms[id] = {pos, idx: unplanar(o,g.ni)};
+      }
+      return {parts: meta.parts, geoms};
+    }catch(e){ console.warn('Kompaktmodell nicht ladbar, nutze modell.json', e); }
+  }
+  const d = await (await fetch('modell.json')).json(); const geoms = {};
+  for(const [id,g] of Object.entries(d.geoms)) geoms[id] = {pos: b64(g.p, Float32Array), idx: g.w===2? b64(g.i, Uint16Array): b64(g.i, Uint32Array)};
+  return {parts: d.parts, geoms};
+}
+const data = await loadModel();
 const geoCache = {};
 for(const [id,g] of Object.entries(data.geoms)){
   const bg = new THREE.BufferGeometry();
-  bg.setAttribute('position', new THREE.BufferAttribute(b64(g.p, Float32Array), 3));
-  bg.setIndex(new THREE.BufferAttribute(g.w===2? b64(g.i, Uint16Array): b64(g.i, Uint32Array), 1));
+  bg.setAttribute('position', new THREE.BufferAttribute(g.pos, 3));
+  bg.setIndex(new THREE.BufferAttribute(g.idx, 1));
   bg.computeVertexNormals(); bg.computeBoundingSphere();
   geoCache[id] = {bg, eg: new THREE.EdgesGeometry(bg, 30)};
 }
