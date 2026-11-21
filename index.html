@@ -1,71 +1,67 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>try{if(window.self!==window.top||location.hash==="#hell")document.documentElement.setAttribute("data-theme","light")}catch(e){document.documentElement.setAttribute("data-theme","light")}</script><style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>document.documentElement.setAttribute("data-theme","light");try{if(window.self!==window.top)document.documentElement.classList.add("embed")}catch(e){document.documentElement.classList.add("embed")}</script><style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
 <title>Bündelblitz Stückliste 3D</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap">
 <style>
-/* Layout: Werkstattblatt – links das drehbare Modell, rechts die Stückliste; auf dem Handy untereinander */
+/* Layout: an outdoor-bgl.com angepasst – Exo 2 Regular, Grau #525252, Grün #3CAA1B, flach, eckig, weißer Grund */
 :root{
-  --bg:#F6F7F4; --panel:#FFFFFF; --ink:#2E2C2A; --text:#4A4946; --mut:#77746E; --line:#E1E2DD;
-  --green:#3CAA1B; --green-deep:#2B7D12; --tint:#ECF6E8; --hover:#F1F4EE; --anthra:#57544F; --view:#FFFFFF;
+  --bg:#FFFFFF; --panel:#FFFFFF; --ink:#525252; --text:#525252; --mut:#8A8A8A; --line:#E3E3E3;
+  --green:#3CAA1B; --green-band:#5DB43F; --green-deep:#2E8A12; --tint:#EEF7EA; --hover:#F6F6F6; --anthra:#57544F; --view:#FFFFFF;
   --f-display:'Exo 2', 'Segoe UI', system-ui, sans-serif; --f-body:'Exo 2', 'Segoe UI', system-ui, sans-serif;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#1B1C1A; --panel:#242523; --ink:#F1F0EC; --text:#D6D4CF; --mut:#A09D96; --line:#3A3B38;
-  --green:#4CC22A; --green-deep:#7AD95A; --tint:#22351C; --hover:#2C2E2A; --anthra:#BDB9B2; --view:#2A2B29; color-scheme:dark } }
-:root[data-theme="dark"]{
-  --bg:#1B1C1A; --panel:#242523; --ink:#F1F0EC; --text:#D6D4CF; --mut:#A09D96; --line:#3A3B38;
-  --green:#4CC22A; --green-deep:#7AD95A; --tint:#22351C; --hover:#2C2E2A; --anthra:#BDB9B2; --view:#2A2B29; color-scheme:dark }
 html,body{ height:100%; }
-body{ background:var(--bg); color:var(--text); font-family:var(--f-body); font-size:15px; line-height:1.45; }
-.wrap{ max-width:1440px; margin:0 auto; padding-block:16px 28px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); display:flex; flex-direction:column; gap:14px; }
-header{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; border-bottom:3px solid var(--green); padding-bottom:10px; }
-header .k{ font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--green-deep); }
-header h1{ margin:2px 0 0; font-family:var(--f-display); font-weight:800; font-size:clamp(24px,3.4vw,34px); line-height:1.05; color:var(--ink); text-wrap:balance; }
-header .meta{ font-size:13px; color:var(--mut); text-align:right; }
-.grid{ display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:14px; align-items:start; }
+body{ background:var(--bg); color:var(--text); font-family:var(--f-body); font-size:16px; line-height:1.6; font-weight:400; }
+.wrap{ max-width:1440px; margin:0 auto; padding-block:8px 20px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); display:flex; flex-direction:column; gap:18px; }
+header h2{ margin:0; font-family:var(--f-display); font-weight:400; font-size:clamp(24px,3vw,30px); line-height:1.3; color:var(--ink); text-wrap:balance; }
+header p{ margin:4px 0 0; font-size:16px; color:var(--text); }
+.grid{ display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:24px; align-items:start; }
 @media (max-width:900px){ .grid{ grid-template-columns:minmax(0,1fr); } }
-.viewer{ position:relative; background:var(--view); border:1px solid var(--line); border-radius:10px; overflow:hidden; height:min(72vh, 720px); min-height:340px; }
-@media (max-width:900px){ .viewer{ height:58vh; } .hint{ display:none; } .tools{ position:static; padding:10px 12px 12px; border-top:1px solid var(--line); } .chip{ box-shadow:none; } header .meta{ text-align:left; } .chip input[type=range]{ width:90px; } }
-.viewer{ display:flex; flex-direction:column; }
+.viewer{ position:relative; background:var(--view); border:1px solid var(--line); overflow:hidden; height:min(72vh, 680px); min-height:340px; display:flex; flex-direction:column; }
 #cv{ display:block; width:100%; flex:1 1 auto; min-height:0; touch-action:none; cursor:grab; }
 #cv.pick{ cursor:pointer; }
-.tip{ position:absolute; pointer-events:none; background:var(--ink); color:var(--bg); font-size:13px; font-weight:600; padding:5px 9px; border-radius:6px; white-space:nowrap; transform:translate(12px, -130%); }
-.tools{ position:absolute; left:12px; right:12px; bottom:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-.chip{ display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:13px; color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,.06); }
-.chip input[type=range]{ width:120px; accent-color:var(--green); }
-button.chip{ cursor:pointer; font:inherit; font-size:13px; }
-button.chip:hover{ border-color:var(--green); }
-button.chip[aria-pressed="false"]{ color:var(--mut); text-decoration:line-through; }
+.tip{ position:absolute; pointer-events:none; background:var(--green); color:#fff; font-size:14px; padding:4px 10px; white-space:nowrap; transform:translate(12px, -130%); }
+.tools{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:10px 12px; border-top:1px solid var(--line); background:var(--panel); }
+.chip{ display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--green); padding:5px 11px; font-size:15px; color:var(--green-deep); }
+label.chip{ border-color:var(--line); color:var(--text); }
+.chip input[type=range]{ width:90px; accent-color:var(--green); }
+button.chip{ cursor:pointer; font:inherit; font-size:15px; }
+button.chip[aria-pressed="true"]{ background:var(--green); color:#fff; }
+button.chip#reset{ margin-left:auto; border-color:var(--line); color:var(--text); }
+button.chip:hover{ background:var(--green-deep); border-color:var(--green-deep); color:#fff; }
+button.chip#reset:hover{ background:var(--hover); color:var(--text); border-color:var(--line); }
 :focus-visible{ outline:2px solid var(--green); outline-offset:2px; }
-.hint{ position:absolute; top:10px; left:12px; font-size:12px; color:var(--mut); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:3px 8px; }
-.list{ background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; max-height:min(72vh, 720px); }
+.hint{ position:absolute; top:10px; left:12px; font-size:13px; color:var(--mut); }
+@media (max-width:900px){ .viewer{ height:58vh; } .hint{ display:none; } .chip input[type=range]{ width:90px; } button.chip#reset{ margin-left:0; } }
+.list{ background:var(--panel); border:1px solid var(--line); display:flex; flex-direction:column; max-height:min(72vh, 680px); }
 @media (max-width:900px){ .list{ max-height:none; } }
-.sel{ padding:12px 14px; border-bottom:1px solid var(--line); min-height:62px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
-.sel .t{ font-weight:700; color:var(--ink); }
-.sel .s{ font-size:13px; color:var(--mut); }
-.sel a{ color:var(--green-deep); font-weight:600; }
+.sel{ padding:12px 14px; border-bottom:1px solid var(--line); min-height:68px; display:flex; flex-direction:column; justify-content:center; gap:2px; }
+.sel .t{ font-size:18px; color:var(--ink); }
+.sel .s{ font-size:14px; color:var(--mut); }
+.sel a{ color:var(--green-deep); text-decoration:underline; }
 .scroll{ overflow:auto; }
 table{ width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-th{ position:sticky; top:0; z-index:1; background:var(--anthra); color:var(--panel); text-align:left; font-weight:600; font-size:13px; padding:7px 10px; }
-td{ padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
-tr.grp td{ background:var(--bg); color:var(--green-deep); font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding-top:10px; }
+th{ position:sticky; top:0; z-index:1; background:var(--green); color:#fff; text-align:left; font-weight:400; font-size:15px; padding:8px 12px; }
+td{ padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top; font-size:16px; }
+tr.grp td{ background:var(--hover); color:var(--ink); font-size:15px; font-weight:700; padding-top:10px; }
 tbody tr.row{ cursor:pointer; }
 tbody tr.row:hover td{ background:var(--hover); }
 tbody tr.row.on td{ background:var(--tint); }
 tbody tr.row.on td:first-child{ box-shadow:inset 4px 0 0 var(--green); }
-td.p{ width:44px; font-weight:700; color:var(--green-deep); }
-td.q{ width:52px; text-align:right; }
-td small{ display:block; color:var(--mut); font-size:12px; }
-.foot{ font-size:12px; color:var(--mut); }
+td.p{ width:48px; color:var(--green-deep); font-weight:700; }
+td.q{ width:56px; text-align:right; }
+td small{ display:block; color:var(--mut); font-size:13px; line-height:1.4; }
+.embed .wrap{ padding-left:0; padding-right:0; padding-top:0; }
+.foot{ margin:0; font-size:14px; color:var(--mut); }
 @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
 </style>
 </head><body>
 
 <div class="wrap">
   <header>
-    <div><div class="k">Bündelblitz · interaktive Stückliste</div><h1>Grundgerät, Anschlagrückwand und Bandabroller</h1></div>
-    <div class="meta">Erwin Rehrl, Herbert März, Alexander Frey GbR<br>Konstruktionsstand 11/2026 · Entwurf</div>
+    <h2>Interaktive Stückliste</h2>
+    <p>Klicken Sie auf ein Bauteil im Modell oder in der Liste – so finden Sie die richtige Positionsnummer für Ihre Ersatzteilbestellung.</p>
   </header>
 
   <div class="grid">
@@ -77,12 +73,12 @@ td small{ display:block; color:var(--mut); font-size:12px; }
         <label class="chip" for="ex">Explosion <input id="ex" type="range" min="0" max="100" value="0"></label>
         <button class="chip" id="t-rw" aria-pressed="true">Anschlagrückwand</button>
         <button class="chip" id="t-ba" aria-pressed="true">Bandabroller</button>
-        <button class="chip" id="reset">Ansicht zurücksetzen</button>
+        <button class="chip" id="reset">Zurücksetzen</button>
       </div>
     </div>
 
     <div class="list">
-      <div class="sel" id="sel"><div class="t">Bauteil anklicken – im Modell oder in der Liste</div><div class="s">Ziehen dreht das Modell, Mausrad oder zwei Finger zoomen.</div></div>
+      <div class="sel" id="sel"><div class="t">Noch kein Bauteil ausgewählt</div><div class="s">Modell drehen: ziehen · Zoomen: Mausrad oder zwei Finger</div></div>
       <div class="scroll" id="scroll">
         <table><thead><tr><th>Pos.</th><th>Bezeichnung</th><th style="text-align:right">Stück</th></tr></thead><tbody id="tb"></tbody></table>
       </div>
@@ -237,7 +233,7 @@ function select(pos, fromTable=false){
         const dir = camera.position.clone().sub(controls.target).normalize(); flyTo(c, Math.min(rad*1.6, radius*0.85), dir); }
     }
   } else {
-    sel.innerHTML = '<div class="t">Bauteil anklicken – im Modell oder in der Liste</div><div class="s">Ziehen dreht das Modell, Mausrad oder zwei Finger zoomen.</div>';
+    sel.innerHTML = '<div class="t">Noch kein Bauteil ausgewählt</div><div class="s">Modell drehen: ziehen · Zoomen: Mausrad oder zwei Finger</div>';
   }
   paint();
 }
