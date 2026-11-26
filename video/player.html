@@ -1,0 +1,12 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bündelblitz Aufbauvideo</title>
+<style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}video{width:100%;height:100%;display:block;object-fit:contain;background:#fff}</style>
+</head><body>
+<video id="v" controls preload="none" playsinline></video>
+<script>
+// ?v=light -> Bündelblitz LIGHT, sonst Bündelblitz (1 / 0,5 Ster, PRO)
+var n = new URLSearchParams(location.search).get('v') === 'light' ? 'aufbau_buendelblitz_light' : 'aufbau_buendelblitz';
+var v = document.getElementById('v'); v.poster = n + '.jpg'; v.src = n + '.mp4';
+v.setAttribute('aria-label', n === 'aufbau_buendelblitz_light' ? 'Aufbauvideo Bündelblitz LIGHT' : 'Aufbauvideo Bündelblitz');
+</script>
+</body></html>
