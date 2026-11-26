@@ -58,7 +58,8 @@ td small{ display:block; color:var(--mut); font-size:13px; line-height:1.4; }
 /* Eingebettet: Höhen ohne vh (sonst Rückkopplung mit der automatischen iframe-Höhe) */
 .embed .viewer{ height:clamp(340px, 46vw, 560px); }
 .embed .list{ max-height:clamp(340px, 46vw, 560px); }
-@media (max-width:900px){ .embed .viewer{ height:clamp(320px, 75vw, 460px); } .embed .list{ max-height:520px; } }
+@media (max-width:900px){ .embed .viewer{ height:clamp(320px, 75vw, 460px); } .embed .list{ max-height:480px; } }
+@media (min-width:640px){ .embed .grid{ grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); } .embed .viewer{ height:clamp(340px, 50vw, 540px); } .embed .list{ max-height:clamp(340px, 50vw, 540px); } }
 .fest .ver{ display:none; } .embed.fest header{ display:none; }
 .foot{ margin:0; font-size:14px; color:var(--mut); }
 @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
@@ -156,9 +157,12 @@ const SETS = {
 };
 // Adressoptionen: v=light (Gerät), fest=1 (Geräteschalter und Kopf aus), arw=0 / ba=0 (Zubehör zu Beginn ausgeblendet)
 const Q = new URLSearchParams(location.search);
-let ver = Q.get('v')==='light' ? 'light' : 'bb';
-const FEST = Q.get('fest')==='1'; if(FEST) document.documentElement.classList.add('fest');
-const INIT = {rw: Q.get('arw')!=='0', ba: Q.get('ba')!=='0'}; let firstSync = true;
+// Eingebettet auf outdoor-bgl.com: Optionen dürfen auch aus der Adresse der Shopseite kommen (iframe mit referrerpolicy)
+let QR = new URLSearchParams(); try{ const r = new URL(document.referrer); if(/(^|\.)outdoor-bgl\.com$/.test(r.hostname)) QR = r.searchParams; }catch(e){}
+const opt = k => Q.has(k) ? Q.get(k) : QR.get(k);
+let ver = opt('v')==='light' ? 'light' : 'bb';
+const FEST = opt('fest')==='1'; if(FEST) document.documentElement.classList.add('fest');
+const INIT = {rw: opt('arw')!=='0', ba: opt('ba')!=='0'}; let firstSync = true;
 let ACC = SETS[ver].acc; let byPos = {};
 
 // ---------- Tabelle ----------
