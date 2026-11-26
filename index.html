@@ -1,9 +1,10 @@
 <!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>document.documentElement.setAttribute("data-theme","light");try{if(window.self!==window.top)document.documentElement.classList.add("embed")}catch(e){document.documentElement.classList.add("embed")}</script><style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
 <title>Bündelblitz Stückliste 3D</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap">
 <style>
+/* Schrift lokal (keine Verbindung zu Google Fonts) */
+@font-face{ font-family:'Exo 2'; font-style:normal; font-weight:400; font-display:swap; src:url(fonts/exo-2-latin-400-normal.woff2) format('woff2'); }
+@font-face{ font-family:'Exo 2'; font-style:normal; font-weight:700; font-display:swap; src:url(fonts/exo-2-latin-700-normal.woff2) format('woff2'); }
 /* Layout: an outdoor-bgl.com angepasst – Exo 2 Regular, Grau #525252, Grün #2B7F10, flach, eckig, weißer Grund */
 :root{
   --bg:#FFFFFF; --panel:#FFFFFF; --ink:#525252; --text:#525252; --mut:#8A8A8A; --line:#E3E3E3;
@@ -29,6 +30,7 @@ label.chip{ border-color:var(--line); color:var(--text); }
 button.chip{ cursor:pointer; font:inherit; font-size:15px; }
 button.chip[aria-pressed="true"]{ background:var(--green); color:#fff; }
 button.chip#reset{ margin-left:auto; border-color:var(--line); color:var(--text); }
+header .ver{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
 button.chip:hover{ background:var(--green-deep); border-color:var(--green-deep); color:#fff; }
 button.chip#reset:hover{ background:var(--hover); color:var(--text); border-color:var(--line); }
 :focus-visible{ outline:2px solid var(--green); outline-offset:2px; }
@@ -52,7 +54,12 @@ tbody tr.row.on td:first-child{ box-shadow:inset 4px 0 0 var(--green); }
 td.p{ width:48px; color:var(--green-deep); font-weight:700; }
 td.q{ width:56px; text-align:right; }
 td small{ display:block; color:var(--mut); font-size:13px; line-height:1.4; }
-.embed .wrap{ padding-left:0; padding-right:0; padding-top:0; }
+.embed .wrap{ padding-left:0; padding-right:0; padding-top:0; padding-bottom:4px; }
+/* Eingebettet: Höhen ohne vh (sonst Rückkopplung mit der automatischen iframe-Höhe) */
+.embed .viewer{ height:clamp(340px, 46vw, 560px); }
+.embed .list{ max-height:clamp(340px, 46vw, 560px); }
+@media (max-width:900px){ .embed .viewer{ height:clamp(320px, 75vw, 460px); } .embed .list{ max-height:520px; } }
+.fest header{ display:none; }
 .foot{ margin:0; font-size:14px; color:var(--mut); }
 @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
 </style>
@@ -62,6 +69,10 @@ td small{ display:block; color:var(--mut); font-size:13px; line-height:1.4; }
   <header>
     <h2>Interaktive Stückliste</h2>
     <p>Klicken Sie auf ein Bauteil im Modell oder in der Liste – so finden Sie die richtige Positionsnummer für Ihre Ersatzteilbestellung.</p>
+    <div class="ver" role="group" aria-label="Gerät wählen">
+      <button class="chip" data-v="bb" aria-pressed="true">Bündelblitz 1 / 0,5 Ster · 0,25 Ster PRO</button>
+      <button class="chip" data-v="light" aria-pressed="false">Bündelblitz LIGHT 0,25 Ster</button>
+    </div>
   </header>
 
   <div class="grid">
@@ -87,7 +98,7 @@ td small{ display:block; color:var(--mut); font-size:13px; line-height:1.4; }
   <p class="foot">Darstellung aus den CAD-Daten (SOLIDWORKS Composer), vereinfacht. Ersatzteile: Positionsnummer angeben, per E-Mail an <b>service@buendelblitz.de</b> oder im Shop unter www.outdoor-bgl.com.</p>
 </div>
 
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -118,12 +129,43 @@ const BOM = [
   {pos:'B4', name:'Werkzeugbox-Halter mit Gewindestift M10', note:'mit je 2 Sechskantschrauben M10 × 25 an der Box', qty:2},
   {pos:'B5', name:'Werkzeugbox', qty:1},
 ];
-const ACC = {rw:['13','14','15','16'], ba:['B1','B2','B3','B4','B5']};
-const byPos = {}; BOM.forEach(b=>{ if(b.pos) byPos[b.pos]=b; });
+const BOM_LIGHT = [
+  {grp:'Grundgerät'},
+  {pos:'1', name:'Seitenwange', qty:2},
+  {pos:'2', name:'Hutmutter M8', qty:8},
+  {pos:'3', name:'Sicherheitshandgriff', qty:2},
+  {pos:'4', name:'Griffrohr', qty:2},
+  {pos:'5', name:'Bügelschraube M8', qty:4},
+  {pos:'6', name:'Gewindestange M10', qty:4},
+  {pos:'7', name:'Wangenrohr', note:'Stahl verzinkt', qty:4},
+  {pos:'8', name:'Achse Ø 20 mm', qty:1},
+  {pos:'9', name:'Distanzhülse', qty:2},
+  {pos:'10', name:'Rad (Luftrad, Felge silber)', note:'schmal, Rillenprofil', qty:2},
+  {pos:'11', name:'Klappsplint', qty:2},
+  {pos:'12', name:'Hutmutter M10', qty:8},
+  {pos:'13', name:'Zentrierstopfen', qty:8},
+  {grp:'Anschlagrückwand (Variante „mit Anschlagwand“)', key:'rw'},
+  {pos:'14', name:'Sternmutter M8', note:'PETG schwarz, UV-stabilisiert', qty:3},
+  {pos:'15', name:'Abstandhalter kurz', note:'dreieckig, PETG schwarz, UV-stabilisiert', qty:3, link:'https://outdoor-bgl.com/p/abstandhalter-kurz-65-mm-dreieckig-fuer-anschlagrueckwand-light'},
+  {pos:'16', name:'Anschlagplatte', qty:1},
+  {pos:'17', name:'Sechskantschraube M8 × 90', qty:3},
+];
+const SETS = {
+  bb:{bom:BOM, acc:{rw:['13','14','15','16'], ba:['B1','B2','B3','B4','B5']}, files:['modell2.json','modell.bin.gz','modell.json'], label:'3D-Modell des Bündelblitz'},
+  light:{bom:BOM_LIGHT, acc:{rw:['14','15','16','17'], ba:[]}, files:['modell_light2.json','modell_light.bin.gz','modell_light.json'], label:'3D-Modell des Bündelblitz LIGHT'}
+};
+// Adressoptionen: v=light (Gerät), fest=1 (Geräteschalter und Kopf aus), arw=0 / ba=0 (Zubehör zu Beginn ausgeblendet)
+const Q = new URLSearchParams(location.search);
+let ver = Q.get('v')==='light' ? 'light' : 'bb';
+const FEST = Q.get('fest')==='1'; if(FEST) document.documentElement.classList.add('fest');
+const INIT = {rw: Q.get('arw')!=='0', ba: Q.get('ba')!=='0'}; let firstSync = true;
+let ACC = SETS[ver].acc; let byPos = {};
 
 // ---------- Tabelle ----------
-const tb = document.getElementById('tb'); const rows = {};
-for(const b of BOM){
+const tb = document.getElementById('tb'); let rows = {};
+function buildTable(){
+tb.innerHTML=''; rows = {}; byPos = {}; SETS[ver].bom.forEach(b=>{ if(b.pos) byPos[b.pos]=b; });
+for(const b of SETS[ver].bom){
   const tr = document.createElement('tr');
   if(b.grp){ tr.className='grp'; tr.innerHTML=`<td colspan="3">${b.grp}</td>`; if(b.key) tr.dataset.acc=b.key; tb.appendChild(tr); continue; }
   tr.className='row'; tr.tabIndex=0; tr.dataset.pos=b.pos;
@@ -134,6 +176,8 @@ for(const b of BOM){
   if(ACC.rw.includes(b.pos)) tr.dataset.acc='rw'; if(ACC.ba.includes(b.pos)) tr.dataset.acc='ba';
   rows[b.pos]=tr; tb.appendChild(tr);
 }
+}
+buildTable();
 
 // ---------- 3D ----------
 const cv = document.getElementById('cv'), viewer = document.getElementById('viewer');
@@ -156,11 +200,12 @@ const parts = []; const center = new THREE.Vector3(); let radius = 1000;
 
 // Kompaktes Modell: 16-Bit quantisiert, delta-codiert, byte-planar, gzip (Fallback: modell.json)
 async function loadModel(){
+  const [F2, FB, FJ] = SETS[ver].files;
   if('DecompressionStream' in window){
     try{
       const [meta, raw] = await Promise.all([
-        fetch('modell2.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }),
-        fetch('modell.bin.gz').then(r=>{ if(!r.ok) throw 0; return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer(); })
+        fetch(F2).then(r=>{ if(!r.ok) throw 0; return r.json(); }),
+        fetch(FB).then(r=>{ if(!r.ok) throw 0; return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer(); })
       ]);
       const B = new Uint8Array(raw);
       const unplanar = (o,n)=>{ const out=new Uint16Array(n); let acc=0; for(let i=0;i<n;i++){ acc=(acc+(B[o+i]|(B[o+n+i]<<8)))&0xFFFF; out[i]=acc; } return out; };
@@ -173,12 +218,16 @@ async function loadModel(){
       return {parts: meta.parts, geoms};
     }catch(e){ console.warn('Kompaktmodell nicht ladbar, nutze modell.json', e); }
   }
-  const d = await (await fetch('modell.json')).json(); const geoms = {};
+  const d = await (await fetch(FJ)).json(); const geoms = {};
   for(const [id,g] of Object.entries(d.geoms)) geoms[id] = {pos: b64(g.p, Float32Array), idx: g.w===2? b64(g.i, Uint16Array): b64(g.i, Uint32Array)};
   return {parts: d.parts, geoms};
 }
+let geoCache = {}; const box = new THREE.Box3();
+async function buildScene(){
+for(const r of parts){ scene.remove(r.grp); } parts.length = 0;
+Object.values(geoCache).forEach(g=>{ g.bg.dispose(); g.eg.dispose(); }); geoCache = {}; box.makeEmpty();
+document.getElementById('hint').textContent = 'Modell wird geladen …';
 const data = await loadModel();
-const geoCache = {};
 for(const [id,g] of Object.entries(data.geoms)){
   const bg = new THREE.BufferGeometry();
   bg.setAttribute('position', new THREE.BufferAttribute(g.pos, 3));
@@ -186,7 +235,6 @@ for(const [id,g] of Object.entries(data.geoms)){
   bg.computeVertexNormals(); bg.computeBoundingSphere();
   geoCache[id] = {bg, eg: new THREE.EdgesGeometry(bg, 30)};
 }
-const box = new THREE.Box3();
 for(const p of data.parts){
   const {bg, eg} = geoCache[p.g];
   const base = new THREE.Color(...p.col);
@@ -203,9 +251,11 @@ for(const p of data.parts){
 }
 box.getCenter(center); radius = box.getSize(new THREE.Vector3()).length()/2;
 document.getElementById('hint').textContent = 'Ziehen: drehen · Rechts/zwei Finger: verschieben · Rad: zoomen';
-
 // Explosion: Richtung je Bauteil vom Gerätemittelpunkt weg
 for(const r of parts){ const d = r.c.clone().sub(center); d.y *= .6; r.dir = d.lengthSq()>1? d.normalize(): new THREE.Vector3(0,1,0); r.dist = r.c.distanceTo(center); }
+cv.setAttribute('aria-label', SETS[ver].label);
+}
+await buildScene();
 function explode(f){
   for(const r of parts){ const off = r.dir.clone().multiplyScalar(f * (180 + r.dist*0.55)); const T = new THREE.Matrix4().makeTranslation(off.x,off.y,off.z); r.grp.matrix.copy(T.multiply(r.M)); r.grp.matrixWorldNeedsUpdate=true; }
 }
@@ -231,6 +281,19 @@ function toggleAcc(k, btn){ shown[k]=!shown[k]; btn.setAttribute('aria-pressed',
   if(current && ACC[k].includes(current) && !shown[k]) select(null); }
 document.getElementById('t-rw').addEventListener('click', e=>toggleAcc('rw', e.currentTarget));
 document.getElementById('t-ba').addEventListener('click', e=>toggleAcc('ba', e.currentTarget));
+function applyAcc(k){ for(const r of parts) if(ACC[k].includes(r.pos)) r.grp.visible = shown[k];
+  tb.querySelectorAll(`[data-acc="${k}"]`).forEach(tr=>tr.hidden=!shown[k]); }
+function syncToolbar(){ document.getElementById('t-ba').hidden = !SETS[ver].acc.ba.length;
+  for(const k of ['rw','ba']){ shown[k] = firstSync ? INIT[k] : true; document.getElementById('t-'+k).setAttribute('aria-pressed', String(shown[k])); applyAcc(k); }
+  firstSync = false;
+  document.querySelectorAll('.ver .chip').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v===ver))); }
+syncToolbar();
+document.querySelectorAll('.ver .chip').forEach(b=>b.addEventListener('click', async ()=>{
+  if(b.dataset.v===ver) return; ver = b.dataset.v; ACC = SETS[ver].acc; current = null; hovered = null;
+  syncToolbar(); buildTable(); select(null); document.getElementById('ex').value=0; touched=false;
+  await buildScene(); paint(); frame(center, radius*0.85);
+  try{ const u=new URL(location.href); if(ver==='light') u.searchParams.set('v','light'); else u.searchParams.delete('v'); history.replaceState(null,'',u); }catch(e){}
+}));
 
 // Auswahl / Hervorhebung
 function paint(){
@@ -303,5 +366,11 @@ function loop(now){
   renderer.render(scene, camera); requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+
+// Eingebettet: Inhaltshöhe an die Shopseite melden (automatische iframe-Höhe)
+if(document.documentElement.classList.contains('embed')){
+  let lastH = 0; const send = ()=>{ const h = Math.ceil(document.querySelector('.wrap').getBoundingClientRect().height); if(Math.abs(h-lastH)>2){ lastH=h; try{ parent.postMessage({type:'bb-stueckliste-hoehe', h, v:ver}, '*'); }catch(e){} } };
+  new ResizeObserver(send).observe(document.querySelector('.wrap')); window.addEventListener('load', send); send();
+}
 </script>
 </body></html>
